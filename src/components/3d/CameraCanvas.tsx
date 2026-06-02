@@ -4,8 +4,9 @@ import { Suspense, useState, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Html, AdaptiveDpr, Environment, AdaptiveEvents } from "@react-three/drei";
 import * as THREE from "three";
-import { CameraModel } from "./CameraModel";
-import { SceneLights } from "./SceneLights";
+import { LensArray }        from "./LensArray";
+import { SmartphoneFrame }  from "./SmartphoneFrame";
+import { CinematicLights }  from "./CinematicLights";
 
 function Loader() {
   return (
@@ -26,14 +27,6 @@ function Loader() {
   );
 }
 
-/**
- * Fixed full-screen WebGL overlay — z-[5] sits above section content
- * (heroes, services) but below the Connect section (z-[10]) so the final
- * state "abstract glow" pulses through the semi-transparent Connect backdrop.
- *
- * frameloop switches to "never" when the browser tab is hidden, pausing
- * all GPU work until the user returns.
- */
 export default function CameraCanvas() {
   const [frameloop, setFrameloop] =
     useState<"always" | "demand" | "never">("always");
@@ -51,28 +44,29 @@ export default function CameraCanvas() {
       aria-hidden="true"
     >
       <Canvas
-        camera={{ position: [0, 0.2, 5], fov: 38, near: 0.1, far: 100 }}
+        camera={{ position: [0, 0.2, 5], fov: 38, near: 0.05, far: 120 }}
         gl={{
-          antialias: true,
-          alpha: true,
-          toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.15,
-          outputColorSpace: THREE.SRGBColorSpace,
+          antialias:          true,
+          alpha:              true,
+          toneMapping:        THREE.ACESFilmicToneMapping,
+          toneMappingExposure:1.2,
+          outputColorSpace:   THREE.SRGBColorSpace,
         }}
         frameloop={frameloop}
         dpr={[1, 2]}
         shadows
         style={{ background: "transparent" }}
       >
-        {/* Drop DPR under GPU load to hold 60 fps */}
         <AdaptiveDpr pixelated />
         <AdaptiveEvents />
 
         <Suspense fallback={<Loader />}>
-          <SceneLights />
-          <CameraModel />
-          {/* HDR env-map for metallic / glass reflections.
-              Inner Suspense isolates CDN load failures from the model. */}
+          <CinematicLights />
+          <LensArray />
+          <SmartphoneFrame />
+
+          {/* HDR environment for metallic chassis + iridescent glass reflections.
+              Nested Suspense isolates CDN latency from the meshes. */}
           <Suspense fallback={null}>
             <Environment preset="studio" background={false} />
           </Suspense>
