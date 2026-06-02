@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --canvas: #050B14;
+  --accent: #00E5FF;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  background-color: #050B14;
+  color: #ffffff;
+  /* Lenis handles scroll behavior */
+  scroll-behavior: auto;
+}
+
+body {
+  background-color: #050B14;
+  color: #ffffff;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Lenis smooth scroll */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/* Horizontal rule accent */
+.hr-accent {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #00E5FF, transparent);
+  opacity: 0.3;
+}
+
+/* Glowing accent dot */
+.accent-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #00E5FF;
+  box-shadow: 0 0 8px #00E5FF, 0 0 20px rgba(0, 229, 255, 0.4);
+}
+
+/* Cursor-style blinking caret */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+.caret {
+  animation: blink 1.2s step-end infinite;
+}
+
+/* Hover underline slide */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background-color: #00E5FF;
+  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* Fade-in utility (used by GSAP targets) */
+.gsap-fade {
+  opacity: 0;
+  transform: translateY(24px);
+}
