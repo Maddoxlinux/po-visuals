@@ -108,6 +108,19 @@ export default function Investment() {
       ref={sectionRef}
       className="relative min-h-screen py-32 px-8 md:px-16"
     >
+      {/* Gradient backdrop — the 3D camera sits on the right at this scroll
+          state (posX: 2.0, showing its metallic back). The gradient keeps
+          the pricing cards on the left legible while the right side stays
+          transparent so the camera is unobstructed through the canvas. */}
+      <div
+        className="absolute inset-0 -z-[1] pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(90deg, rgba(5,11,20,0.92) 0%, rgba(5,11,20,0.92) 55%, rgba(5,11,20,0.35) 80%, transparent 100%)",
+        }}
+        aria-hidden="true"
+      />
+
       <hr className="hr-accent mb-24" />
 
       {/* Heading */}

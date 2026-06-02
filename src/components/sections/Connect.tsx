@@ -87,8 +87,14 @@ export default function Connect() {
     <section
       id="connect"
       ref={sectionRef}
-      className="relative min-h-screen py-32 px-8 md:px-16 flex flex-col justify-between"
+      className="relative z-[10] min-h-screen py-32 px-8 md:px-16 flex flex-col justify-between"
     >
+      {/* Dark semi-transparent fill — sits below section content but above the
+          fixed canvas (z-[5]). At ~80% opacity the abstract cyan lens glow
+          pulses through from behind at roughly 20% apparent intensity,
+          creating an ethereal atmospheric backlight for the contact section. */}
+      <div className="absolute inset-0 -z-[1] bg-canvas/80" aria-hidden="true" />
+
       <hr className="hr-accent mb-24" />
 
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-20">
