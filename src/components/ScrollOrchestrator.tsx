@@ -23,7 +23,9 @@ gsap.registerPlugin(ScrollTrigger);
  *   3  → 6   (30%): Stage 2→3  Assembling → Perfect alignment + lens glow
  *   6  → 10  (40%): Stage 3→4  Assembled  → Phone reveal + screen glow
  *
- * scrub: 1.5  smooths both trackpad micro-jitter and scroll-wheel steps.
+ * scrub: 0.5  GSAP catches up quickly so spring physics in useFrame has a
+ * moving target to chase — the spring itself provides the smooth feel +
+ * overshoot. A scrub of 0.5 is responsive without fighting the spring.
  * invalidateOnRefresh re-measures on resize so the timeline stays accurate.
  */
 export default function ScrollOrchestrator() {
@@ -49,7 +51,7 @@ export default function ScrollOrchestrator() {
         trigger:            document.documentElement,
         start:              "top top",
         end:                "bottom bottom",
-        scrub:              1.5,
+        scrub:              0.5,
         invalidateOnRefresh:true,
       },
     });

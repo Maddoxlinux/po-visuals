@@ -1,31 +1,40 @@
 "use client";
 
 import { useRef, useMemo } from "react";
-import { useFrame } from "@react-three/fiber";
-import { RoundedBox } from "@react-three/drei";
-import * as THREE from "three";
-import { componentPositions, componentRotations, sceneState, mouseSmooth } from "@/lib/componentPositions";
+import { useFrame }                 from "@react-three/fiber";
+import { RoundedBox, Html }         from "@react-three/drei";
+import * as THREE                   from "three";
+import { componentPositions, componentRotations, sceneState, mouseSmooth, hoverState } from "@/lib/componentPositions";
+import { makeSpringVec3, tickSpring, SPRING_PRESETS } from "@/lib/springPhysics";
 
 // Phone parallax is shallower than the lens elements (it's the background element)
 const PARALLAX_PHONE = 0.30;
 const FLOAT_PHASE_PHONE = 3.50;
 
 export function SmartphoneFrame() {
-  const phoneRef     = useRef<THREE.Group>(null);
-  const screenMatRef = useRef<THREE.MeshStandardMaterial>(null);
+  const phoneRef       = useRef<THREE.Group>(null);
+  const screenMatRef   = useRef<THREE.MeshStandardMaterial>(null);
   const screenLightRef = useRef<THREE.PointLight>(null);
+
+  // Spring physics for phone
+  const sprPhone = useRef(makeSpringVec3(0, 0, -4.0));
+
+  // Tooltip
+  const tipPhoneRef = useRef<HTMLDivElement>(null);
 
   // ── Materials ─────────────────────────────────────────────────────────────
 
   const mat = useMemo(() => {
     const chassis = new THREE.MeshPhysicalMaterial({
-      color:              new THREE.Color("#1c1c26"),   // satin chrome — lighter than before
+      color:              new THREE.Color("#1c1c26"),
       roughness:          0.15,
       metalness:          0.95,
       reflectivity:       1,
       clearcoat:          0.85,
       clearcoatRoughness: 0.05,
       envMapIntensity:    4.5,
+      emissive:           new THREE.Color(0x000000),
+      emissiveIntensity:  0,
     });
 
     const frontGlass = new THREE.MeshPhysicalMaterial({
@@ -244,39 +253,58 @@ export function SmartphoneFrame() {
 
   // ── useFrame ──────────────────────────────────────────────────────────────
 
-  useFrame(({ clock }) => {
+  useFrame((state, delta) => {
     if (!phoneRef.current) return;
 
-    const t  = clock.getElapsedTime();
+    const t  = state.clock.getElapsedTime();
     const mi = sceneState.mouseInfluence;
     const sg = sceneState.screenGlow;
+
+    // Spring physics — large "mass", most dramatic overshoot
+    tickSpring(sprPhone.current, componentPositions.phone,
+      SPRING_PRESETS.phone.stiffness, SPRING_PRESETS.phone.damping, delta);
 
     const floatY = Math.sin(t * 0.60 + FLOAT_PHASE_PHONE) * 0.045 * mi;
 
     phoneRef.current.position.set(
-      componentPositions.phone.x + mouseSmooth.x * 0.22 * PARALLAX_PHONE,
-      componentPositions.phone.y + mouseSmooth.y * 0.22 * PARALLAX_PHONE + floatY,
-      componentPositions.phone.z,
+      sprPhone.current.pos.x + mouseSmooth.x * 0.22 * PARALLAX_PHONE,
+      sprPhone.current.pos.y + mouseSmooth.y * 0.22 * PARALLAX_PHONE + floatY,
+      sprPhone.current.pos.z,
     );
-    phoneRef.current.rotation.set(
-      componentRotations.phone.x,
-      componentRotations.phone.y,
-      componentRotations.phone.z,
-    );
+    // Damp rotations (spring on rotation looks jittery)
+    phoneRef.current.rotation.x = THREE.MathUtils.damp(phoneRef.current.rotation.x, componentRotations.phone.x, 10, delta);
+    phoneRef.current.rotation.y = THREE.MathUtils.damp(phoneRef.current.rotation.y, componentRotations.phone.y, 10, delta);
+    phoneRef.current.rotation.z = THREE.MathUtils.damp(phoneRef.current.rotation.z, componentRotations.phone.z, 10, delta);
 
     // Screen glow — emissive and back-light activate in Stage 4
-    if (screenMatRef.current) {
-      screenMatRef.current.emissiveIntensity = sg * 1.8;
+    if (screenMatRef.current) screenMatRef.current.emissiveIntensity = sg * 1.8;
+    if (screenLightRef.current) screenLightRef.current.intensity = sg * 3.5;
+
+    // Hover emissive flash on chassis material
+    const isHovered = hoverState.active === "phone";
+    if (mat.chassis) {
+      const tgt = isHovered ? 1.5 : 0;
+      mat.chassis.emissiveIntensity = THREE.MathUtils.damp(mat.chassis.emissiveIntensity, tgt, isHovered ? 12 : 6, delta);
+      if (isHovered) mat.chassis.emissive.setHex(0x00E5FF);
     }
-    if (screenLightRef.current) {
-      screenLightRef.current.intensity = sg * 3.5;
+
+    // Tooltip
+    if (tipPhoneRef.current) {
+      tipPhoneRef.current.style.opacity = isHovered ? "1" : "0";
     }
   });
 
   const { chassis, frontGlass, backGlass, cameraBump, camLens, sideButton, notchMat } = mat;
 
   return (
-    <group ref={phoneRef}>
+    <group ref={phoneRef} userData={{ componentId: "phone" }}>
+      {/* Hover tooltip — position to the right of the phone */}
+      <Html position={[0.55, 0.6, 0]} distanceFactor={5} zIndexRange={[100, 0]}>
+        <div ref={tipPhoneRef} className="tooltip-3d" style={{ opacity: 0 }}>
+          Titanium Smartphone
+          <span className="tooltip-tag">Camera Module · Satin Chrome</span>
+        </div>
+      </Html>
 
       {/* Screen fill light — activates with screenGlow in Stage 4 */}
       <pointLight

@@ -4,23 +4,23 @@ import { Suspense, useState, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Html, AdaptiveDpr, Environment, AdaptiveEvents } from "@react-three/drei";
 import * as THREE from "three";
-import { LensArray }        from "./LensArray";
-import { SmartphoneFrame }  from "./SmartphoneFrame";
-import { CinematicLights }  from "./CinematicLights";
+import { LensArray }       from "./LensArray";
+import { SmartphoneFrame } from "./SmartphoneFrame";
+import { CinematicLights } from "./CinematicLights";
+import { PricingPlane }    from "./PricingPlane";
+import { AtmosphereRing }  from "./AtmosphereRing";
 
 function Loader() {
   return (
     <Html center>
-      <p
-        style={{
-          fontFamily: "monospace",
-          fontSize: 10,
-          letterSpacing: "0.35em",
-          color: "rgba(0,229,255,0.35)",
-          textTransform: "uppercase",
-          whiteSpace: "nowrap",
-        }}
-      >
+      <p style={{
+        fontFamily: "monospace",
+        fontSize: 10,
+        letterSpacing: "0.35em",
+        color: "rgba(0,229,255,0.35)",
+        textTransform: "uppercase",
+        whiteSpace: "nowrap",
+      }}>
         Initialising
       </p>
     </Html>
@@ -57,16 +57,29 @@ export default function CameraCanvas() {
         shadows
         style={{ background: "transparent" }}
       >
+        {/* Subtle atmospheric depth fog — starts well beyond Stage 3 assembly */}
+        <fog attach="fog" args={["#020a1a", 14, 28]} />
+
         <AdaptiveDpr pixelated />
         <AdaptiveEvents />
 
         <Suspense fallback={<Loader />}>
+          {/* Background first so depth buffer is correct */}
+          <AtmosphereRing />
+
           <CinematicLights />
           <LensArray />
           <SmartphoneFrame />
 
-          {/* HDR environment for metallic chassis + iridescent glass reflections.
-              Nested Suspense isolates CDN latency from the meshes. */}
+          {/*
+            PricingPlane: a canvas-texture mesh that sits in 3D space between
+            Lens 1 and Lens 2. MeshTransmissionMaterial's refraction buffer
+            captures it, so the pricing text is physically bent, magnified,
+            and RGB-split when viewed through the glass in Stage 3.
+          */}
+          <PricingPlane />
+
+          {/* HDR environment for metallic + glass reflections */}
           <Suspense fallback={null}>
             <Environment preset="studio" background={false} />
           </Suspense>

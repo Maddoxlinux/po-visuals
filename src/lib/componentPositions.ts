@@ -46,3 +46,11 @@ export const sceneState = {
 // LensArray updates this; SmartphoneFrame reads it. One listener, two users.
 
 export const mouseSmooth = { x: 0, y: 0 };
+
+// ── Hover state ───────────────────────────────────────────────────────────────
+// LensArray / SmartphoneFrame write the currently hovered component ID here.
+// Written from useFrame (raycasting), read to drive emissive and tooltips.
+
+export const hoverState = {
+  active: null as string | null,   // 'ring' | 'lens1' | 'lens2' | 'sensor' | 'phone' | null
+};
