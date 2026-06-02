@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
+import { MeshTransmissionMaterial } from "@react-three/drei";
 import * as THREE from "three";
 import {
   componentPositions,
@@ -50,51 +51,43 @@ export function LensArray() {
   // ── Materials ─────────────────────────────────────────────────────────────
 
   const mat = useMemo(() => {
+    // Liquid titanium / satin-chrome — reflects the dark-navy background
+    // and the cyan light leaks from CinematicLights
     const ring = new THREE.MeshPhysicalMaterial({
-      color:           new THREE.Color("#1c1c22"),
-      roughness:       0.10,
-      metalness:       1.0,
-      reflectivity:    1,
-      clearcoat:       0.6,
-      clearcoatRoughness: 0.08,
-      envMapIntensity: 3.0,
+      color:              new THREE.Color("#24242e"),   // slightly lighter, more reflective
+      roughness:          0.15,
+      metalness:          0.95,
+      reflectivity:       1,
+      clearcoat:          0.7,
+      clearcoatRoughness: 0.06,
+      envMapIntensity:    4.0,
     });
 
     const ringInner = new THREE.MeshPhysicalMaterial({
-      color:           new THREE.Color("#0e0e14"),
-      roughness:       0.35,
-      metalness:       0.85,
-      envMapIntensity: 1.2,
+      color:           new THREE.Color("#12121a"),
+      roughness:       0.28,
+      metalness:       0.88,
+      envMapIntensity: 1.8,
     });
 
-    // MeshPhysicalMaterial with transmission + iridescent coating
-    // Matches the spec: transmission:0.9, roughness:0.1, thickness:1.5, cyan iridescence
-    const glass = new THREE.MeshPhysicalMaterial({
-      color:               new THREE.Color("#030a14"),
-      roughness:           0.1,
-      metalness:           0,
-      transmission:        0.9,
-      thickness:           1.5,
-      ior:                 1.52,
-      transparent:         true,
-      opacity:             1,
-      envMapIntensity:     4.5,
-      attenuationColor:    new THREE.Color("#00C8FF"),
-      attenuationDistance: 1.5,
-      iridescence:         0.85,
-      iridescenceIOR:      1.35,
-      iridescenceThicknessRange: [80, 420] as [number, number],
+    // Note: glass is now inline <MeshTransmissionMaterial> in JSX for proper
+    // refraction buffer — kept here only for the edge-seal torus references
+    const sealMetal = new THREE.MeshPhysicalMaterial({
+      color:           new THREE.Color("#20202a"),
+      roughness:       0.12,
+      metalness:       0.98,
+      envMapIntensity: 3.5,
     });
 
     const sensor = new THREE.MeshPhysicalMaterial({
-      color:           new THREE.Color("#080c18"),
-      roughness:       0.14,
-      metalness:       0.92,
+      color:           new THREE.Color("#0a0e1c"),
+      roughness:       0.13,
+      metalness:       0.94,
       reflectivity:    0.9,
-      envMapIntensity: 2.2,
+      envMapIntensity: 2.8,
     });
 
-    return { ring, ringInner, glass, sensor };
+    return { ring, ringInner, sealMetal, sensor };
   }, []);
 
   // ── Biconvex lens profiles (LatheGeometry points) ─────────────────────────
@@ -288,7 +281,7 @@ export function LensArray() {
     if (lensLightRef.current) lensLightRef.current.intensity = g * 7;
   });
 
-  const { ring, ringInner, glass, sensor } = mat;
+  const { ring, ringInner, sealMetal, sensor } = mat;
 
   return (
     <>
@@ -317,12 +310,34 @@ export function LensArray() {
 
       {/* ── LENS 1 — Front element (larger, biconvex) ────────────────── */}
       <group ref={lens1Ref}>
-        {/* Biconvex glass element */}
-        <mesh rotation={[Math.PI / 2, 0, 0]} material={glass} castShadow>
+        {/* Biconvex glass element — MeshTransmissionMaterial creates a live
+            refraction buffer so 3D content behind the glass is properly
+            bent by ior:1.3 and RGB-split by chromaticAberration:0.5.     */}
+        <mesh rotation={[Math.PI / 2, 0, 0]} castShadow>
           <latheGeometry args={[lens1Points, 96]} />
+          <MeshTransmissionMaterial
+            samples={4}
+            resolution={512}
+            transmission={1}
+            thickness={1.5}
+            ior={1.3}
+            chromaticAberration={0.5}
+            distortion={0.38}
+            distortionScale={0.42}
+            temporalDistortion={0.08}
+            roughness={0.1}
+            color="#040c18"
+            attenuationColor="#00C8FF"
+            attenuationDistance={1.5}
+            iridescence={0.85}
+            iridescenceIOR={1.35}
+            iridescenceThicknessRange={[80, 420] as [number, number]}
+            envMapIntensity={5}
+            backside={false}
+          />
         </mesh>
         {/* Edge seal ring */}
-        <mesh rotation={[Math.PI / 2, 0, 0]} material={ring}>
+        <mesh rotation={[Math.PI / 2, 0, 0]} material={sealMetal}>
           <torusGeometry args={[0.285, 0.018, 8, 96]} />
         </mesh>
         {/* Projection glow overlay (flat disc, in front of glass) */}
@@ -350,10 +365,30 @@ export function LensArray() {
 
       {/* ── LENS 2 — Rear element (smaller, different profile) ───────── */}
       <group ref={lens2Ref}>
-        <mesh rotation={[Math.PI / 2, 0, 0]} material={glass} castShadow>
+        <mesh rotation={[Math.PI / 2, 0, 0]} castShadow>
           <latheGeometry args={[lens2Points, 96]} />
+          <MeshTransmissionMaterial
+            samples={4}
+            resolution={512}
+            transmission={1}
+            thickness={1.2}
+            ior={1.3}
+            chromaticAberration={0.4}
+            distortion={0.28}
+            distortionScale={0.35}
+            temporalDistortion={0.06}
+            roughness={0.1}
+            color="#030a14"
+            attenuationColor="#0080CC"
+            attenuationDistance={1.2}
+            iridescence={0.7}
+            iridescenceIOR={1.3}
+            iridescenceThicknessRange={[100, 380] as [number, number]}
+            envMapIntensity={4.5}
+            backside={false}
+          />
         </mesh>
-        <mesh rotation={[Math.PI / 2, 0, 0]} material={ring}>
+        <mesh rotation={[Math.PI / 2, 0, 0]} material={sealMetal}>
           <torusGeometry args={[0.252, 0.016, 8, 96]} />
         </mesh>
         <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.054]}>

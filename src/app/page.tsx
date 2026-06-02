@@ -9,10 +9,19 @@ import CameraLayer from "@/components/CameraLayer";
 export default function Home() {
   return (
     <>
-      {/* ── Layer 0: fixed dark canvas background ─────────────────────
-          Sits below the WebGL canvas (z-[5]) so the transparent R3F
-          canvas alpha regions don't expose the browser chrome. */}
-      <div className="fixed inset-0 z-0 bg-canvas" aria-hidden="true" />
+      {/* ── Layer 0: rich luminous gradient backdrop ──────────────────
+          Replaces the flat #050B14 to give the WebGL canvas a living,
+          light-leaking environment to reflect from. The gradient is on
+          <html> in globals.css; this div reinforces it as a fixed layer
+          so it doesn't scroll or clip behind sections. */}
+      <div
+        className="fixed inset-0 z-0"
+        style={{
+          background:
+            "linear-gradient(180deg, #030712 0%, #081125 28%, #0a1530 58%, #020617 100%)",
+        }}
+        aria-hidden="true"
+      />
 
       {/* ── Layer 5: WebGL camera (fixed, client-only) ────────────────
           CameraLayer wraps next/dynamic(ssr:false) in a client component

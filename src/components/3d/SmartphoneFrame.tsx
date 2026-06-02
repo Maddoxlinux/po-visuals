@@ -19,13 +19,13 @@ export function SmartphoneFrame() {
 
   const mat = useMemo(() => {
     const chassis = new THREE.MeshPhysicalMaterial({
-      color:              new THREE.Color("#111118"),
-      roughness:          0.10,
-      metalness:          0.96,
+      color:              new THREE.Color("#1c1c26"),   // satin chrome — lighter than before
+      roughness:          0.15,
+      metalness:          0.95,
       reflectivity:       1,
-      clearcoat:          0.8,
-      clearcoatRoughness: 0.06,
-      envMapIntensity:    3.0,
+      clearcoat:          0.85,
+      clearcoatRoughness: 0.05,
+      envMapIntensity:    4.5,
     });
 
     const frontGlass = new THREE.MeshPhysicalMaterial({

@@ -80,8 +80,26 @@ export function CinematicLights() {
         position={[6, 0, 2]}
       />
 
-      {/* ── 7. Ambient ───────────────────────────────────────────────────── */}
-      <ambientLight color="#030810" intensity={6} />
+      {/* ── 7. Wide cyan side light — the key integration light ─────────────
+          This is the light that bleeds across the HTML section boundaries.
+          It's wide-angle, low-height, and throws the characteristic deep-teal
+          haze across the glass iridescence + satin-chrome surfaces.
+          Positioned from the RIGHT so it rakes across the lens faces and       */}
+      <directionalLight
+        color="#00E5FF"
+        intensity={2.2}
+        position={[5, -0.5, 3]}
+      />
+
+      {/* ── 8. Counter cyan from left — fills shadows with navy-teal ──────── */}
+      <directionalLight
+        color="#003c5a"
+        intensity={1.4}
+        position={[-5, 0.8, 1]}
+      />
+
+      {/* ── 9. Ambient ───────────────────────────────────────────────────── */}
+      <ambientLight color="#04091a" intensity={7} />
     </>
   );
 }

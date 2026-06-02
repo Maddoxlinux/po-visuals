@@ -83,14 +83,15 @@ export default function Services() {
         }
       );
 
-      // ScrollTrigger placeholder for Phase 2 WebGL scene transition
-      ScrollTrigger.create({
-        trigger: sectionRef.current,
-        start: "top center",
-        end: "bottom center",
-        scrub: true,
-        onUpdate: (self) => {
-          console.log("[Services ScrollTrigger] progress:", self.progress.toFixed(3));
+      // Heading parallax — drifts up at 60% of scroll speed (lighter than 3D)
+      gsap.to(".services-heading", {
+        y: -40,
+        ease: "none",
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: 1.8,
         },
       });
     }, sectionRef);
@@ -102,7 +103,7 @@ export default function Services() {
     <section
       id="services"
       ref={sectionRef}
-      className="relative min-h-screen py-32 px-8 md:px-16"
+      className="relative min-h-screen py-32 px-8 md:px-16 section-transparent"
     >
       <hr className="hr-accent mb-24" />
 
@@ -120,11 +121,11 @@ export default function Services() {
       </div>
 
       {/* Grid */}
-      <div className="services-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-white/5">
+      <div className="services-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {collections.map((item) => (
           <div
             key={item.index}
-            className="service-card group relative bg-canvas p-10 hover:bg-white/[0.03] transition-colors duration-500 cursor-pointer overflow-hidden"
+            className="service-card glass-card group relative p-10 transition-all duration-500 cursor-pointer overflow-hidden"
           >
             {/* Hover accent line */}
             <div className="absolute top-0 left-0 w-0 group-hover:w-full h-px bg-accent transition-all duration-500" />

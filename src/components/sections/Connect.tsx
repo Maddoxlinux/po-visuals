@@ -93,7 +93,19 @@ export default function Connect() {
           fixed canvas (z-[5]). At ~80% opacity the abstract cyan lens glow
           pulses through from behind at roughly 20% apparent intensity,
           creating an ethereal atmospheric backlight for the contact section. */}
-      <div className="absolute inset-0 -z-[1] bg-canvas/80" aria-hidden="true" />
+      {/* Reduced to /62 — phone screen glow (Stage 4 screenGlow) pulses      */}
+      {/* through at roughly 38% intensity, creating an ambient cyan haze      */}
+      {/* behind the contact elements rather than a flat black wall.           */}
+      <div
+        className="absolute inset-0 -z-[1]"
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(3,7,18,0.62) 0%, rgba(8,17,37,0.68) 60%, rgba(2,6,23,0.72) 100%)",
+          backdropFilter: "blur(4px)",
+          WebkitBackdropFilter: "blur(4px)",
+        }}
+        aria-hidden="true"
+      />
 
       <hr className="hr-accent mb-24" />
 

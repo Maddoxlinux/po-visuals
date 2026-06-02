@@ -51,7 +51,7 @@ export default function Hero() {
     <section
       id="work"
       ref={sectionRef}
-      className="relative min-h-screen flex flex-col justify-end pb-20 px-8 md:px-16"
+      className="relative min-h-screen flex flex-col justify-end pb-20 px-8 md:px-16 section-transparent"
     >
       {/* Subtle grid — sits in normal flow, above the fixed canvas */}
       <div
@@ -65,12 +65,12 @@ export default function Hero() {
         }}
       />
 
-      {/* Radial vignette — grounds the 3D canvas visually */}
+      {/* Radial vignette — lightened so the navy gradient breathes through */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse 80% 70% at 50% 50%, transparent 40%, rgba(5,11,20,0.65) 100%)",
+            "radial-gradient(ellipse 85% 75% at 50% 50%, transparent 45%, rgba(3,7,18,0.45) 100%)",
         }}
       />
 

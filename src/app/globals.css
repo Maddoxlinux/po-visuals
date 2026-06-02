@@ -2,55 +2,56 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Design tokens ──────────────────────────────────────────────────────── */
 :root {
-  --canvas: #050B14;
-  --accent: #00E5FF;
+  --canvas:   #050B14;
+  --accent:   #00E5FF;
+  --navy-0:   #030712;
+  --navy-1:   #081125;
+  --navy-2:   #0a1530;
+  --navy-3:   #020617;
 }
 
+/* ── Reset ──────────────────────────────────────────────────────────────── */
 * {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
 }
 
+/* ── Root background — luminous deep-navy gradient ──────────────────────── */
+/* All section containers are transparent; this gradient is the canvas        */
 html {
-  background-color: #050B14;
   color: #ffffff;
-  /* Lenis handles scroll behavior */
   scroll-behavior: auto;
+  /* The gradient renders here so it's always visible behind the WebGL layer */
+  background: linear-gradient(
+    180deg,
+    #030712  0%,
+    #081125 30%,
+    #0a1530 60%,
+    #020617 100%
+  );
+  min-height: 100%;
 }
 
 body {
-  background-color: #050B14;
   color: #ffffff;
   overflow-x: hidden;
+  background: transparent; /* body is clear — html carries the gradient */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Lenis smooth scroll */
+/* ── Lenis smooth scroll ────────────────────────────────────────────────── */
 html.lenis,
-html.lenis body {
-  height: auto;
-}
+html.lenis body          { height: auto; }
+.lenis.lenis-smooth      { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped     { overflow: hidden; }
+.lenis.lenis-smooth iframe { pointer-events: none; }
 
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
-}
-
-.lenis.lenis-smooth [data-lenis-prevent] {
-  overscroll-behavior: contain;
-}
-
-.lenis.lenis-stopped {
-  overflow: hidden;
-}
-
-.lenis.lenis-smooth iframe {
-  pointer-events: none;
-}
-
-/* Horizontal rule accent */
+/* ── Decorative utilities ───────────────────────────────────────────────── */
 .hr-accent {
   border: none;
   height: 1px;
@@ -58,45 +59,81 @@ html.lenis body {
   opacity: 0.3;
 }
 
-/* Glowing accent dot */
 .accent-dot {
   display: inline-block;
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background-color: #00E5FF;
-  box-shadow: 0 0 8px #00E5FF, 0 0 20px rgba(0, 229, 255, 0.4);
+  box-shadow: 0 0 8px #00E5FF, 0 0 20px rgba(0,229,255,0.4);
 }
 
-/* Cursor-style blinking caret */
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0; }
 }
-.caret {
-  animation: blink 1.2s step-end infinite;
-}
+.caret { animation: blink 1.2s step-end infinite; }
 
-/* Hover underline slide */
-.nav-link {
-  position: relative;
-}
+.nav-link { position: relative; }
 .nav-link::after {
   content: "";
   position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 1px;
+  bottom: -2px; left: 0;
+  width: 0; height: 1px;
   background-color: #00E5FF;
-  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.35s cubic-bezier(0.4,0,0.2,1);
 }
-.nav-link:hover::after {
-  width: 100%;
+.nav-link:hover::after { width: 100%; }
+
+.gsap-fade { opacity: 0; transform: translateY(24px); }
+
+/* ── Glass card — the core integration primitive ────────────────────────── */
+/* Used on service cards and pricing cards. The backdrop-filter lets the       */
+/* WebGL canvas bleed through and creates the "glass between text and 3D"     */
+/* layering effect. bg-white/[0.025] keeps text legible against any bg.       */
+.glass-card {
+  background: rgba(255, 255, 255, 0.025);
+  backdrop-filter: blur(8px) saturate(140%);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background 0.4s ease, border-color 0.4s ease, backdrop-filter 0.4s ease;
 }
 
-/* Fade-in utility (used by GSAP targets) */
-.gsap-fade {
-  opacity: 0;
-  transform: translateY(24px);
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.045);
+  border-color: rgba(0, 229, 255, 0.22);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+}
+
+/* Featured pricing card — subtle cyan tint through the glass */
+.glass-card-featured {
+  background: rgba(0, 229, 255, 0.04);
+  backdrop-filter: blur(10px) saturate(150%);
+  -webkit-backdrop-filter: blur(10px) saturate(150%);
+  border: 1px solid rgba(0, 229, 255, 0.18);
+}
+
+/* ── Lens distortion target ─────────────────────────────────────────────── */
+/* Applied to price value spans during the Stage 3 lens-alignment scroll.     */
+/* GSAP sets `filter` and `transform` directly on these; we just declare the  */
+/* will-change so the browser composites them cheaply.                         */
+.lens-distort {
+  display: inline-block;
+  will-change: transform, filter;
+  transition: transform 0.05s linear, filter 0.05s linear;
+}
+
+/* ── Chromatic bleed animation (decorative rings on hr-accent hover) ─────── */
+@keyframes chromatic-drift {
+  0%   { opacity: 0.3; background-position: 0% 50%; }
+  50%  { opacity: 0.6; background-position: 100% 50%; }
+  100% { opacity: 0.3; background-position: 0% 50%; }
+}
+
+/* ── Section parallax wrappers ──────────────────────────────────────────── */
+/* Sections have no background — the gradient + WebGL canvas show through.   */
+/* Individual cards / headings use .glass-card for controlled readability.    */
+.section-transparent {
+  background: transparent;
 }
